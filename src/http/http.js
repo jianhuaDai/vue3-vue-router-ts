@@ -38,7 +38,7 @@ const err = (error) => {
 
 // request interceptor
 Http.interceptors.request.use(config => {
-    const token = Vue.ls.get(ACCESS_TOKEN)
+    const token = '1234567' //根据实际存储获取 vue.ls或者localstorage
     if (token) {
         config.headers['Authorization'] = token // 让每个请求携带自定义 token 请根据实际情况自行修改
     }
