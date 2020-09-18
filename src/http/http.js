@@ -35,9 +35,32 @@ const err = (error) => {
     }
     return Promise.reject(error)
 }
-
+// 同一时间防止重复请求
+let pending = []; //声明一个数组用于存储每个请求的取消函数和axios标识
+let cancelToken = axios.CancelToken;
+let removePending = (config) => {
+    console.log('pending', pending);
+    for (let p in pending) {
+        if (pending[p].u === config.url.split('?')[0] + '&' + config.method) {
+            //当当前请求在数组中存在时执行函数体
+            pending[p].f(); //执行取消操作
+            pending.splice(p, 1); //数组移除当前请求
+        }
+    }
+}
 // request interceptor
 Http.interceptors.request.use(config => {
+    /**
+     * 
+     */
+    removePending(config); //在一个axios发送前执行一下取消操作 阻止重复请求
+    config.cancelToken = new cancelToken((c) => {
+        // pending存放每一次请求的标识，一般是url + 参数名 + 请求方法，当然你可以自己定义
+        pending.push({ u: config.url.split('?')[0] + '&' + config.method, f: c });
+    });
+    /**
+     * 
+     */
     const token = '1234567' //根据实际存储获取 vue.ls或者localstorage
     if (token) {
         config.headers['Authorization'] = token // 让每个请求携带自定义 token 请根据实际情况自行修改
